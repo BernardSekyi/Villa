@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>VR Modern Luxury House</title>
+    <meta name="description" content="VR Modern Luxury House - A-Frame">
+    <!-- A-Frame Core -->
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <!-- A-Frame Extras (for movement controls, navmesh, etc.) -->
+    <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.0.0/dist/aframe-extras.min.js"></script>
+    <!-- A-Frame Physics System -->
+    <script
+        src="https://cdn.jsdelivr.net/gh/n5ro/aframe-physics-system@v4.0.1/dist/aframe-physics-system.min.js"></script>
+
+    <script>
+        // Custom component for texture repeating (fix for stretched textures)
+        AFRAME.registerComponent('repeat-texture', {
+            schema: {
+                x: { type: 'number', default: 1 },
+                y: { type: 'number', default: 1 }
+            },
+            init: function () {
+                var data = this.data;
+                var el = this.el;
+                el.addEventListener('materialtextureloaded', function (e) {
+                    var texture = e.detail.texture;
+                    if (texture) {
+                        texture.wrapS = THREE.RepeatWrapping;
+                        texture.wrapT = THREE.RepeatWrapping;
+                        texture.repeat.set(data.x, data.y);
+                        texture.needsUpdate = true;
+                    }
+                });
+            }
+        });
+    </script>
+</head>
+
+<body>
+    <!-- 
+      Physics settings:
+      gravity: -9.8 (standard earth gravity)
+      debug: false (turn to true to see collision wires)
+    -->
+    <a-scene physics="gravity: -9.8; debug: false" renderer="antialias: true; colorManagement: true;">
+
+        <!-- ASSETS LOADER -->
+        <a-assets>
+            <!-- Environment -->
+            <img id="sky-tex" src="./examination-assets/sky.jpg">
+            <img id="grass-tex" src="./examination-assets/grass.jpg">
+            <img id="moon-tex" src="./examination-assets/moon.jpg">
+
+            <!-- House Materials -->
+            <img id="wall-tex" src="./examination-assets/wall.jpg">
+            <img id="floor-tex" src="./examination-assets/floor.jpg">
+            <img id="tile-tex" src="./examination-assets/tile-floor.jpg">
+            <img id="wood-tex" src="./examination-assets/wood-floor.jpg">
+            <img id="marble-tex" src="./examination-assets/marble.jpg">
+            <img id="roof-tex" src="./examination-assets/roof.jpg">
+            <img id="water-tex" src="./examination-assets/water.jpg">
+
+            <!-- Props/Decor -->
+            <img id="fence-tex" src="./examination-assets/fence.jpg">
+            <img id="furniture-tex" src="./examination-assets/funiture.jpg"> <!-- Note: 'funiture' typo in source -->
+            <img id="cushion-tex" src="./examination-assets/cushion.jpg">
+            <img id="dog-tex" src="./examination-assets/dog.jpg">
+
+            <!-- Car -->
+            <img id="car-body-tex" src="./examination-assets/car-body.jpg">
+            <img id="car-tyre-tex" src="./examination-assets/car-tyre.jpg">
+            <img id="car-window-tex" src="./examination-assets/car-window.jpg">
+
+            <!-- Nature -->
+            <img id="tree-body-tex" src="./examination-assets/tree-body.jpg">
+            <img id="tree-leaf-tex" src="./examination-assets/tree-leaf.jpg">
+
+            <!-- Mixins for common materials -->
+            <a-mixin id="wall-mat" material="src: #wall-tex; roughness: 0.8;"></a-mixin>
+            <a-mixin id="floor-mat" material="src: #floor-tex; roughness: 0.5; metalness: 0.1"></a-mixin>
+        </a-assets>
+
+        <!-- ENVIRONMENT -->
+
+        <!-- Sky -->
+        <a-sky src="#sky-tex"></a-sky>
+
+        <!-- Lighting -->
+        <!-- Ambient light for base illumination -->
+        <a-entity light="type: ambient; color: #BBB; intensity: 0.6"></a-entity>
+        <!-- Directional light (Sun) -->
+        <a-entity light="type: directional; color: #FFF; intensity: 0.8; castShadow: true" position="-10 20 10"
+            shadow="mapSize: 2048; bias: -0.0001"></a-entity>
+
+        <!-- Ground (Navigable surface) -->
+        <!-- Static body for physics collision -->
+        <a-plane id="ground" src="#grass-tex" repeat-texture="x: 50; y: 50" rotation="-90 0 0" width="100" height="100"
+            static-body shadow="receive: true">
+        </a-plane>
+
+        <!-- CAMERA RIG (Player Control) -->
+        <!-- kinematic-body: Allows movement but respects collisions with static-body objects -->
+        <a-entity id="rig" movement-controls="speed: 0.2" kinematic-body position="0 1.6 5">
+            <a-entity camera position="0 1.6 0" look-controls="pointerLockEnabled: true">
+                <a-cursor></a-cursor>
+            </a-entity>
+        </a-entity>
+
+        <!-- TEMPORARY VISUALS TO CONFIRM SCENE -->
+
+        <!-- HOUSE CONTAINER -->
+        <a-entity id="house" position="0 0 -10">
+
+            <!-- GROUND FLOOR -->
+            <!-- Foundation / Living Room Floor (Marble) -->
+            <!-- static-body for physics -->
+            <a-box id="gfx-floor-living" position="-5 0.1 0" width="15" height="0.2" depth="15" src="#marble-tex"
+                repeat-texture="x: 4; y: 4" static-body shadow="receive: true"></a-box>
+
+            <!-- Kitchen Floor (Tile) -->
+            <a-box id="gfx-floor-kitchen" position="7.5 0.1 0" width="10" height="0.2" depth="15" src="#tile-tex"
+                repeat-texture="x: 4; y: 4" static-body shadow="receive: true"></a-box>
+
+            <!-- GROUND FLOOR WALLS -->
+            <!-- Back Wall -->
+            <a-box position="0 2.1 -7.5" width="25" height="4" depth="0.2" src="#wall-tex" repeat-texture="x: 5; y: 1"
+                static-body shadow></a-box>
+            <!-- Left Wall -->
+            <a-box position="-12.5 2.1 0" width="0.2" height="4" depth="15" src="#wall-tex" repeat-texture="x: 3; y: 1"
+                static-body shadow></a-box>
+            <!-- Right Wall (Kitchen side) -->
+            <a-box position="12.5 2.1 0" width="0.2" height="4" depth="15" src="#wall-tex" repeat-texture="x: 3; y: 1"
+                static-body shadow></a-box>
+            <!-- Front Wall (Partial with entrance) -->
+            <a-box position="-7.5 2.1 7.5" width="10" height="4" depth="0.2" src="#wall-tex" repeat-texture="x: 2; y: 1"
+                static-body shadow></a-box>
+            <a-box position="8.75 2.1 7.5" width="7.5" height="4" depth="0.2" src="#wall-tex"
+                repeat-texture="x: 2; y: 1" static-body shadow></a-box>
+
+            <!-- Ceiling / 2ND FLOOR BASE -->
+            <a-box position="0 4.1 0" width="25" height="0.2" depth="15" src="#wall-tex" static-body shadow></a-box>
+
+            <!-- SECOND FLOOR (Bedroom) -->
+            <!-- Located above Living Room area -->
+            <a-box id="sfx-floor-bedroom" position="-5 4.2 0" width="15" height="0.1" depth="15" src="#wood-tex"
+                repeat-texture="x: 4; y: 4" static-body shadow="receive: true"></a-box>
+
+            <!-- 2nd Floor Walls -->
+            <a-box position="-5 6.2 -7.5" width="15" height="4" depth="0.2" src="#wall-tex" static-body shadow></a-box>
+            <!-- Back -->
+            <a-box position="-12.5 6.2 0" width="0.2" height="4" depth="15" src="#wall-tex" static-body shadow></a-box>
+            <!-- Left -->
+            <a-box position="2.5 6.2 0" width="0.2" height="4" depth="15" src="#wall-tex" static-body shadow></a-box>
+            <!-- Right Internal -->
+            <a-box position="-5 6.2 7.5" width="15" height="4" depth="0.2" src="#wall-tex" static-body shadow></a-box>
+            <!-- Front -->
+
+            <!-- ROOF -->
+            <!-- Pyramid style roof or flat modern? Image shows tiled roof. Let's make a pyramid roof for the main block -->
+            <a-cone position="-5 9.2 0" radius-bottom="11" height="4" segments-height="1" segments-radial="4"
+                rotation="0 45 0" src="#roof-tex" repeat-texture="x: 4; y: 2" shadow></a-cone>
+
+            <!-- STAIRS (Simple Ramp for now to ensure walkability) -->
+            <a-box position="5 2 0" rotation="0 0 35" width="2" height="8" depth="2" src="#wood-tex" static-body
+                shadow></a-box>
+
+            <!-- INTERIOR FURNITURE -->
+
+            <!-- LIVING ROOM (Main area) -->
+            <!-- Sofa -->
+            <a-box position="-5 0.5 -2" width="3" height="0.6" depth="1" src="#cushion-tex" static-body shadow></a-box>
+            <!-- Coffee Table -->
+            <a-box position="-5 0.4 0" width="1.5" height="0.4" depth="1" src="#furniture-tex" static-body
+                shadow></a-box>
+            <!-- Side Shelves -->
+            <a-box position="-9 1 -5" width="2" height="2" depth="0.5" src="#furniture-tex" static-body shadow></a-box>
+
+            <!-- KITCHEN (Tiled area) -->
+            <!-- Counters -->
+            <a-box position="8 1 -5" width="8" height="1" depth="1" src="#marble-tex" static-body shadow></a-box>
+            <a-box position="11.5 1 0" width="1" height="1" depth="8" src="#marble-tex" static-body shadow></a-box>
+            <!-- Fridge (Abstract) -->
+            <a-box position="5 1.5 -5" width="1.2" height="2.5" depth="1" color="#DDD" static-body shadow></a-box>
+
+            <!-- BEDROOM (Upstairs) -->
+            <!-- Bed -->
+            <a-box position="-5 4.5 -3" width="2.5" height="0.6" depth="3.5" src="#cushion-tex" static-body
+                shadow></a-box>
+            <!-- Wardrobe -->
+            <a-box position="-9 5.5 0" width="1" height="2.5" depth="3" src="#furniture-tex" static-body shadow></a-box>
+
+
+        </a-entity>
+
+        <!-- A simple box to test asset loading and shadows -->
+        <a-box position="0 0.5 -3" src="#marble-tex" shadow></a-box>
+
+    </a-scene>
+</body>
+
+</html>
